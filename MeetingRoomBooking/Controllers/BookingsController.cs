@@ -48,10 +48,59 @@ namespace MeetingRoomBooking.Controllers
         }
 
         // GET: Bookings/Create
-        public IActionResult Create()
+        public IActionResult Create(string startDate = null, string startTime = null, string endDate = null, string endTime = null, int? roomId = null)
         {
-            ViewData["RoomId"] = new SelectList(_context.Rooms, "RoomId", "Name");
-            return View();
+            var booking = new Booking();
+            
+            // Set default values for time if they're provided from the calendar
+            if (!string.IsNullOrEmpty(startDate) && !string.IsNullOrEmpty(startTime))
+            {
+                try
+                {
+                    var date = DateTime.Parse(startDate);
+                    var time = TimeSpan.Parse(startTime);
+                    booking.StartTime = date.Add(time);
+                }
+                catch 
+                {
+                    // Use default if parsing fails
+                    booking.StartTime = DateTime.Now.AddHours(1).Date.AddHours(9); // 9:00 AM next day
+                }
+            }
+            else
+            {
+                // Default start time (1 hour from now, rounded to next hour)
+                booking.StartTime = DateTime.Now.AddHours(1).Date.AddHours(9); // 9:00 AM next day
+            }
+
+            if (!string.IsNullOrEmpty(endDate) && !string.IsNullOrEmpty(endTime))
+            {
+                try
+                {
+                    var date = DateTime.Parse(endDate);
+                    var time = TimeSpan.Parse(endTime);
+                    booking.EndTime = date.Add(time);
+                }
+                catch
+                {
+                    // Use default if parsing fails
+                    booking.EndTime = booking.StartTime.AddHours(1);
+                }
+            }
+            else
+            {
+                // Default end time (1 hour after start time)
+                booking.EndTime = booking.StartTime.AddHours(1);
+            }
+
+            // Set room if provided
+            if (roomId.HasValue)
+            {
+                booking.RoomId = roomId.Value;
+            }
+
+            ViewData["RoomId"] = new SelectList(_context.Rooms, "RoomId", "Name", booking.RoomId);
+            return View(booking);
         }
 
         // POST: Bookings/Create
@@ -155,8 +204,24 @@ namespace MeetingRoomBooking.Controllers
 
                 try
                 {
-                    _context.Update(booking);
-                    await _context.SaveChangesAsync();
+                    // Update approach that's more testable
+                    var existingBooking = await _context.Bookings.FindAsync(booking.BookingId);
+                    if (existingBooking != null)
+                    {
+                        // Update all properties
+                        existingBooking.RoomId = booking.RoomId;
+                        existingBooking.Title = booking.Title;
+                        existingBooking.Description = booking.Description;
+                        existingBooking.BookedBy = booking.BookedBy;
+                        existingBooking.Email = booking.Email;
+                        existingBooking.ContactNumber = booking.ContactNumber;
+                        existingBooking.StartTime = booking.StartTime;
+                        existingBooking.EndTime = booking.EndTime;
+                        existingBooking.NumberOfAttendees = booking.NumberOfAttendees;
+                        existingBooking.Status = booking.Status;
+
+                        await _context.SaveChangesAsync();
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -240,6 +305,19 @@ namespace MeetingRoomBooking.Controllers
                 .ToListAsync();
 
             return Json(bookings);
+        }
+
+        // GET: Bookings/GetRoomCapacity
+        [HttpGet]
+        public async Task<IActionResult> GetRoomCapacity(int roomId)
+        {
+            var room = await _context.Rooms.FindAsync(roomId);
+            if (room == null)
+            {
+                return NotFound();
+            }
+
+            return Json(room.Capacity);
         }
 
         // Method to check if the room is available during the requested time

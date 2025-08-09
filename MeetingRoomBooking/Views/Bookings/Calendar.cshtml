@@ -1,0 +1,221 @@
+@{
+    ViewData["Title"] = "Booking Calendar";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Meeting Room Calendar</h1>
+        <div>
+            <a asp-action="Index" class="btn btn-secondary me-2">
+                <i class="bi bi-list"></i> List View
+            </a>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Book a Room
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Filter Options</h5>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="roomFilter">Room:</label>
+                        <select id="roomFilter" class="form-select">
+                            <option value="">All Rooms</option>
+                            @foreach (var room in ViewData["Rooms"] as SelectList)
+                            {
+                                <option value="@room.Value">@room.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Status Legend:</label>
+                        <div class="d-flex flex-wrap">
+                            <div class="me-3">
+                                <span class="badge bg-success">Approved</span>
+                            </div>
+                            <div class="me-3">
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            </div>
+                            <div class="me-3">
+                                <span class="badge bg-danger">Rejected</span>
+                            </div>
+                            <div>
+                                <span class="badge bg-secondary">Cancelled</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <!-- Booking Details Modal -->
+    <div class="modal fade" id="bookingDetailsModal" tabindex="-1" aria-labelledby="bookingDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bookingDetailsModalLabel">Booking Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="bookingDetails">
+                        <h4 id="modalTitle"></h4>
+                        <p><strong>Room:</strong> <span id="modalRoom"></span></p>
+                        <p><strong>Time:</strong> <span id="modalTime"></span></p>
+                        <p><strong>Booked By:</strong> <span id="modalBookedBy"></span></p>
+                        <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a id="viewDetailsLink" href="#" class="btn btn-primary">View Full Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                selectable: true,
+                selectMirror: true,
+                select: function(arg) {
+                    // When a date range is selected, navigate to create booking with those dates
+                    var startDate = arg.start.toISOString().split('T')[0];
+                    var startTime = arg.start.toISOString().split('T')[1].substring(0, 5);
+                    var endDate = arg.end.toISOString().split('T')[0];
+                    var endTime = arg.end.toISOString().split('T')[1].substring(0, 5);
+                    
+                    window.location.href = '@Url.Action("Create", "Bookings")' + 
+                        '?startDate=' + startDate + 
+                        '&startTime=' + startTime + 
+                        '&endDate=' + endDate + 
+                        '&endTime=' + endTime;
+                },
+                eventClick: function(info) {
+                    // When an event is clicked, show the booking details
+                    $('#modalTitle').text(info.event.title);
+                    $('#modalRoom').text(info.event.extendedProps.roomName);
+                    
+                    var startDate = new Date(info.event.start);
+                    var endDate = new Date(info.event.end);
+                    var formattedStart = startDate.toLocaleDateString() + ' ' + startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    var formattedEnd = endDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    $('#modalTime').text(formattedStart + ' - ' + formattedEnd);
+                    
+                    $('#modalBookedBy').text(info.event.extendedProps.bookedBy);
+                    
+                    // Set status with appropriate badge
+                    var statusHtml = '';
+                    switch(info.event.extendedProps.status) {
+                        case 'Approved':
+                            statusHtml = '<span class="badge bg-success">Approved</span>';
+                            break;
+                        case 'Pending':
+                            statusHtml = '<span class="badge bg-warning text-dark">Pending</span>';
+                            break;
+                        case 'Rejected':
+                            statusHtml = '<span class="badge bg-danger">Rejected</span>';
+                            break;
+                        case 'Cancelled':
+                            statusHtml = '<span class="badge bg-secondary">Cancelled</span>';
+                            break;
+                    }
+                    $('#modalStatus').html(statusHtml);
+                    
+                    // Set the details link
+                    $('#viewDetailsLink').attr('href', '@Url.Action("Details", "Bookings")/' + info.event.id);
+                    
+                    $('#bookingDetailsModal').modal('show');
+                },
+                editable: false,
+                dayMaxEvents: true, // allow "more" link when too many events
+                events: function(fetchInfo, successCallback, failureCallback) {
+                    // Use AJAX to fetch events based on the selected date range
+                    var startDate = fetchInfo.start;
+                    var endDate = fetchInfo.end;
+                    var roomId = $('#roomFilter').val() || null;
+                    
+                    loadBookings(startDate, endDate, roomId, successCallback);
+                }
+            });
+            
+            calendar.render();
+            
+            // Add filter change event
+            $('#roomFilter').change(function() {
+                calendar.refetchEvents();
+            });
+            
+            // Function to load bookings for the calendar
+            function loadBookings(startDate, endDate, roomId, successCallback) {
+                // Loop through each day in the range and fetch bookings
+                var currentDate = new Date(startDate);
+                var endDateObj = new Date(endDate);
+                var allBookings = [];
+                var daysProcessed = 0;
+                var totalDays = Math.ceil((endDateObj - currentDate) / (1000 * 60 * 60 * 24));
+                
+                while (currentDate < endDateObj) {
+                    let dateToFetch = new Date(currentDate);
+                    
+                    $.ajax({
+                        url: '@Url.Action("GetBookings", "Bookings")',
+                        type: 'POST',
+                        data: {
+                            date: dateToFetch.toISOString(),
+                            roomId: roomId
+                        },
+                        success: function(bookings) {
+                            allBookings = allBookings.concat(bookings);
+                            daysProcessed++;
+                            
+                            if (daysProcessed === totalDays) {
+                                successCallback(allBookings);
+                            }
+                        },
+                        error: function() {
+                            daysProcessed++;
+                            if (daysProcessed === totalDays) {
+                                successCallback(allBookings);
+                            }
+                        }
+                    });
+                    
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                
+                // Handle case of empty date range
+                if (totalDays === 0) {
+                    successCallback(allBookings);
+                }
+            }
+        });
+    </script>
+}

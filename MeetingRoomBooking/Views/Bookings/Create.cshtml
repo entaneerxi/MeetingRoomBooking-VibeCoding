@@ -1,0 +1,158 @@
+@model MeetingRoomBooking.Models.Booking
+
+@{
+    ViewData["Title"] = "Book a Room";
+}
+
+<div class="container">
+    <h1>Book a Meeting Room</h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Booking Details</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="RoomId" class="control-label">Room</label>
+                                    <select asp-for="RoomId" class="form-select" asp-items="ViewBag.RoomId"></select>
+                                    <span asp-validation-for="RoomId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="NumberOfAttendees" class="control-label"></label>
+                                    <input asp-for="NumberOfAttendees" class="form-control" placeholder="Enter number of attendees" />
+                                    <span asp-validation-for="NumberOfAttendees" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="Title" class="control-label"></label>
+                            <input asp-for="Title" class="form-control" placeholder="Enter meeting title" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="Description" class="control-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter meeting description"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="StartTime" class="control-label"></label>
+                                    <input asp-for="StartTime" class="form-control" type="datetime-local" />
+                                    <span asp-validation-for="StartTime" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="EndTime" class="control-label"></label>
+                                    <input asp-for="EndTime" class="form-control" type="datetime-local" />
+                                    <span asp-validation-for="EndTime" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr />
+                        <h5>Contact Information</h5>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="BookedBy" class="control-label"></label>
+                                    <input asp-for="BookedBy" class="form-control" placeholder="Your name" />
+                                    <span asp-validation-for="BookedBy" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Email" class="control-label"></label>
+                                    <input asp-for="Email" class="form-control" placeholder="Your email" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="ContactNumber" class="control-label"></label>
+                            <input asp-for="ContactNumber" class="form-control" placeholder="Your contact number" />
+                            <span asp-validation-for="ContactNumber" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">Create Booking</button>
+                            <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5>Booking Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>Make sure to select a room that can accommodate your number of attendees.</li>
+                        <li>Bookings must be made at least 1 hour in advance.</li>
+                        <li>Maximum booking duration is 4 hours for standard rooms.</li>
+                        <li>Board rooms require manager approval for bookings.</li>
+                        <li>Cancellations should be made at least 24 hours before the meeting.</li>
+                    </ul>
+                    <hr />
+                    <p>Need help? Contact the facilities team:</p>
+                    <p><strong>Email:</strong> facilities@example.com<br />
+                    <strong>Phone:</strong> 555-123-4567</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Auto-adjust end time when start time changes (add 1 hour)
+        $(document).ready(function() {
+            $("#StartTime").change(function() {
+                var startTime = new Date($(this).val());
+                var endTime = new Date(startTime);
+                endTime.setHours(endTime.getHours() + 1);
+                
+                // Format for datetime-local input
+                var endTimeStr = endTime.toISOString().slice(0, 16);
+                $("#EndTime").val(endTimeStr);
+            });
+            
+            // Check room capacity when room selection changes
+            $("#RoomId").change(function() {
+                var selectedRoomId = $(this).val();
+                if (selectedRoomId) {
+                    $.ajax({
+                        url: '@Url.Action("GetRoomCapacity", "Bookings")',
+                        type: 'GET',
+                        data: { roomId: selectedRoomId },
+                        success: function(capacity) {
+                            if (capacity > 0) {
+                                $("#NumberOfAttendees").attr("max", capacity);
+                                $("#NumberOfAttendees").attr("placeholder", "Max: " + capacity + " attendees");
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

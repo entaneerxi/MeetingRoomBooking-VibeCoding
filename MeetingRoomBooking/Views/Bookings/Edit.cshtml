@@ -1,0 +1,153 @@
+@model MeetingRoomBooking.Models.Booking
+
+@{
+    ViewData["Title"] = "Edit Booking";
+}
+
+<div class="container">
+    <h1>Edit Booking</h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Booking Details</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="BookingId" />
+                        <input type="hidden" asp-for="CreatedDate" />
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="RoomId" class="control-label">Room</label>
+                                    <select asp-for="RoomId" class="form-select" asp-items="ViewBag.RoomId"></select>
+                                    <span asp-validation-for="RoomId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Status" class="control-label"></label>
+                                    <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<BookingStatus>()"></select>
+                                    <span asp-validation-for="Status" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="Title" class="control-label"></label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="Description" class="control-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="StartTime" class="control-label"></label>
+                                    <input asp-for="StartTime" class="form-control" type="datetime-local" />
+                                    <span asp-validation-for="StartTime" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="EndTime" class="control-label"></label>
+                                    <input asp-for="EndTime" class="form-control" type="datetime-local" />
+                                    <span asp-validation-for="EndTime" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="NumberOfAttendees" class="control-label"></label>
+                            <input asp-for="NumberOfAttendees" class="form-control" />
+                            <span asp-validation-for="NumberOfAttendees" class="text-danger"></span>
+                        </div>
+                        
+                        <hr />
+                        <h5>Contact Information</h5>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="BookedBy" class="control-label"></label>
+                                    <input asp-for="BookedBy" class="form-control" />
+                                    <span asp-validation-for="BookedBy" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Email" class="control-label"></label>
+                                    <input asp-for="Email" class="form-control" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="ContactNumber" class="control-label"></label>
+                            <input asp-for="ContactNumber" class="form-control" />
+                            <span asp-validation-for="ContactNumber" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5>Editing Information</h5>
+                </div>
+                <div class="card-body">
+                    <p>You can modify any details of this booking, but please note:</p>
+                    <ul>
+                        <li>Changing date/time will require availability verification</li>
+                        <li>Changing room may affect availability</li>
+                        <li>Only administrators can change booking status</li>
+                        <li>Bookings can only be edited up to 24 hours before start time</li>
+                    </ul>
+                    <hr />
+                    <p><strong>Created:</strong> @Model.CreatedDate.ToString("g")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Auto-adjust end time when start time changes (add 1 hour)
+        $(document).ready(function() {
+            $("#RoomId").change(function() {
+                var selectedRoomId = $(this).val();
+                if (selectedRoomId) {
+                    $.ajax({
+                        url: '@Url.Action("GetRoomCapacity", "Bookings")',
+                        type: 'GET',
+                        data: { roomId: selectedRoomId },
+                        success: function(capacity) {
+                            if (capacity > 0) {
+                                $("#NumberOfAttendees").attr("max", capacity);
+                                $("#NumberOfAttendees").attr("placeholder", "Max: " + capacity + " attendees");
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

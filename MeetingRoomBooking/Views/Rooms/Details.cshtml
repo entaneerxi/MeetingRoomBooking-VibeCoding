@@ -1,0 +1,59 @@
+@model MeetingRoomBooking.Models.Room
+
+@{
+    ViewData["Title"] = "Room Details";
+}
+
+<div class="container">
+    <h1>Room Details</h1>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4>@Model.Name</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">Room Number</dt>
+                        <dd class="col-sm-8">@Model.RoomNumber</dd>
+                        
+                        <dt class="col-sm-4">Floor</dt>
+                        <dd class="col-sm-8">@Model.FloorNumber</dd>
+                        
+                        <dt class="col-sm-4">Capacity</dt>
+                        <dd class="col-sm-8">@Model.Capacity people</dd>
+                        
+                        <dt class="col-sm-4">Projector</dt>
+                        <dd class="col-sm-8">@(Model.HasProjector ? "Available" : "Not Available")</dd>
+                        
+                        <dt class="col-sm-4">Video Conference</dt>
+                        <dd class="col-sm-8">@(Model.HasVideoConference ? "Available" : "Not Available")</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <h5>Description</h5>
+                    <p>@Model.Description</p>
+                    <hr />
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-controller="Bookings" asp-action="Create" asp-route-roomId="@Model.RoomId" class="btn btn-success">
+                            <i class="bi bi-calendar-check"></i> Book This Room
+                        </a>
+                        <a asp-controller="Bookings" asp-action="Calendar" asp-route-roomId="@Model.RoomId" class="btn btn-info">
+                            <i class="bi bi-calendar3"></i> View Schedule
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <a asp-action="Edit" asp-route-id="@Model.RoomId" class="btn btn-primary">Edit</a>
+                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                </div>
+                <a asp-action="Delete" asp-route-id="@Model.RoomId" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>

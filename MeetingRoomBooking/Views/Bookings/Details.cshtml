@@ -1,0 +1,78 @@
+@model MeetingRoomBooking.Models.Booking
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<div class="container">
+    <h1>Booking Details</h1>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5>@Model.Title</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Room)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.Room.Name)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.BookingDate)</dt>
+                        <dd class="col-sm-8">@Model.BookingDate.ToString("dddd, MMMM d, yyyy")</dd>
+
+                        <dt class="col-sm-4">Time</dt>
+                        <dd class="col-sm-8">@Model.StartTime.ToString("HH:mm") - @Model.EndTime.ToString("HH:mm")</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.BookedBy)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.BookedBy)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Email)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.Email)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.ContactNumber)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.ContactNumber)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.NumberOfAttendees)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.NumberOfAttendees)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.CreatedDate)</dt>
+                        <dd class="col-sm-8">@Model.CreatedDate.ToString("g")</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Status)</dt>
+                        <dd class="col-sm-8">
+                            @switch (Model.Status)
+                            {
+                                case BookingStatus.Approved:
+                                    <span class="badge bg-success">Approved</span>
+                                    break;
+                                case BookingStatus.Pending:
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                    break;
+                                case BookingStatus.Rejected:
+                                    <span class="badge bg-danger">Rejected</span>
+                                    break;
+                                case BookingStatus.Cancelled:
+                                    <span class="badge bg-secondary">Cancelled</span>
+                                    break;
+                            }
+                        </dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <h5>Description</h5>
+                    <p>@Model.Description</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <a asp-action="Edit" asp-route-id="@Model.BookingId" class="btn btn-primary">Edit</a>
+                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                </div>
+                <a asp-action="Delete" asp-route-id="@Model.BookingId" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>

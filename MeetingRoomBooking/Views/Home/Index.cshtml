@@ -1,0 +1,112 @@
+﻿@{
+    ViewData["Title"] = "Home";
+    var stats = ViewData["Stats"] as dynamic;
+    var todayBookings = ViewData["TodayBookings"] as List<Booking>;
+}
+
+<div class="container mt-4">
+    <div class="jumbotron bg-light p-5 rounded">
+        <h1 class="display-4">Meeting Room Booking System</h1>
+        <p class="lead">Book meeting rooms quickly and easily for your team.</p>
+        <hr class="my-4">
+        <div class="row">
+            <div class="col-md-6">
+                <p>Manage meeting rooms and bookings efficiently with our booking system.</p>
+                <p>
+                    <a class="btn btn-primary btn-lg" asp-controller="Bookings" asp-action="Create" role="button">Book a Room</a>
+                    <a class="btn btn-secondary btn-lg" asp-controller="Bookings" asp-action="Calendar" role="button">View Calendar</a>
+                </p>
+            </div>
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Total Rooms</h5>
+                                <h2>@stats.TotalRooms</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Total Bookings</h5>
+                                <h2>@stats.TotalBookings</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Today's Bookings</h5>
+                                <h2>@stats.TodayBookings</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card bg-warning text-dark">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Upcoming</h5>
+                                <h2>@stats.UpcomingBookings</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (todayBookings != null && todayBookings.Any())
+    {
+        <div class="card mt-4">
+            <div class="card-header bg-primary text-white">
+                <h4>Today's Bookings (@DateTime.Today.ToString("dddd, MMMM d, yyyy"))</h4>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Room</th>
+                            <th>Meeting</th>
+                            <th>Booked By</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var booking in todayBookings)
+                        {
+                            <tr>
+                                <td>@booking.StartTime.ToString("HH:mm") - @booking.EndTime.ToString("HH:mm")</td>
+                                <td>@booking.Room.Name</td>
+                                <td>@booking.Title</td>
+                                <td>@booking.BookedBy</td>
+                                <td>
+                                    @switch (booking.Status)
+                                    {
+                                        case BookingStatus.Approved:
+                                            <span class="badge bg-success">Approved</span>
+                                            break;
+                                        case BookingStatus.Pending:
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                            break;
+                                        case BookingStatus.Rejected:
+                                            <span class="badge bg-danger">Rejected</span>
+                                            break;
+                                        case BookingStatus.Cancelled:
+                                            <span class="badge bg-secondary">Cancelled</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    <a class="btn btn-sm btn-info" asp-controller="Bookings" asp-action="Details" asp-route-id="@booking.BookingId">Details</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

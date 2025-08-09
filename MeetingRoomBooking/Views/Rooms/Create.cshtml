@@ -1,0 +1,92 @@
+@model MeetingRoomBooking.Models.Room
+
+@{
+    ViewData["Title"] = "Create Room";
+}
+
+<div class="container">
+    <h1>Create New Room</h1>
+    <hr />
+    <div class="row">
+        <div class="col-md-8">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="Name" class="control-label"></label>
+                    <input asp-for="Name" class="form-control" placeholder="Enter room name" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="Description" class="control-label"></label>
+                    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Describe the room and its features"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="FloorNumber" class="control-label"></label>
+                            <input asp-for="FloorNumber" class="form-control" placeholder="Enter floor number" />
+                            <span asp-validation-for="FloorNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="RoomNumber" class="control-label"></label>
+                            <input asp-for="RoomNumber" class="form-control" placeholder="Enter room number" />
+                            <span asp-validation-for="RoomNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="Capacity" class="control-label"></label>
+                    <input asp-for="Capacity" class="form-control" placeholder="Enter maximum number of people" />
+                    <span asp-validation-for="Capacity" class="text-danger"></span>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input asp-for="HasProjector" class="form-check-input" />
+                            <label asp-for="HasProjector" class="form-check-label"></label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input asp-for="HasVideoConference" class="form-check-input" />
+                            <label asp-for="HasVideoConference" class="form-check-label"></label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5>Tips</h5>
+                </div>
+                <div class="card-body">
+                    <p>Make sure to include important details about the room:</p>
+                    <ul>
+                        <li>Unique name for easy identification</li>
+                        <li>Accurate capacity to avoid overbooking</li>
+                        <li>Clear description of available equipment</li>
+                        <li>Floor and room number for easy location</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
